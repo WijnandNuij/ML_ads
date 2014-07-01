@@ -6,13 +6,19 @@ runTraining <- function(percentageTrain=0.7)
 {
         ads <- loadData()
         
-        # row number of x% of the data for training set
-        numberTrainingSet <- round(nrow(ads) * percentageTrain, digits=0) - 1
-        trainingSet <- ads[1:numberTrainingSet,]
-        testSet <- ads[(numberTrainingSet+1):nrow(ads),]
         
-        #trainedModel <- c50(trainingSet)
-        trainedModel <- m5tree(trainingSet)
+        # row number of x% of the data for training set
+        #numberTrainingSet <- round(nrow(ads) * percentageTrain, digits=0) - 1
+        #trainingSet <- ads[1:numberTrainingSet,]
+        #testSet <- ads[(numberTrainingSet+1):nrow(ads),]
+        
+        require(caret)
+        trainIndex <- createDataPartition(ads$Label, p = 0.7, list=FALSE)
+        trainingSet <- ads[trainIndex, ]
+        testSet <- ads[-trainIndex, ]
+
+        #trainedModel <- m5tree(trainingSet)
+        trainedModel <- linearModel(trainingSet)
         result <- predict(trainedModel, testSet)
         
         printPredictionResults(result, testSet$Label)
@@ -40,8 +46,6 @@ loadData <- function(location='/home/wijnand/R_workspace_ads/resources/500krows.
                 }
         }
         
-        #rawData[["Label"]] <- as.factor(rawData[["Label"]])
-        
         # randomize
         rawData <- rawData[order(runif(nrow(rawData))),]
         
@@ -56,10 +60,9 @@ m5tree <- function(data)
         trainedModel <- M5P(Label ~ . , data)
 }
 
-c50 <- function(data)
+linearModel <- function(data)
 {
-        require(C50)
-        trainedModel <- C5.0(Label ~ . , data)
+        trainedModel <- lm(Label ~ . , data, na.action = na.omit)
 }
 
 printPredictionResults <- function(prediction, actual)
