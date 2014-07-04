@@ -22,9 +22,9 @@ runTraining <- function(percentageTrain=0.5)
         print(table(testSet$C9))
         print(length(testSet$C9))
         
-        #trainedModel <- m5tree(trainingSet)
+        trainedModel <- m5tree(trainingSet)
         #trainedModel <- linearModel(trainingSet)
-        trainedModel <- generalizedLinearModel(trainingSet)
+        #trainedModel <- generalizedLinearModel(trainingSet)
         
         print(summary(trainedModel))
         result <- predict(trainedModel, testSet)
@@ -83,7 +83,6 @@ loadData <- function(location='/home/wijnand/R_workspace_ads/resources/500krows.
         rawData
 }
 
-
 m5tree <- function(data)
 {
         require(RWeka)
@@ -99,23 +98,18 @@ linearModel <- function(data)
 generalizedLinearModel <- function(data)
 {
         print(str(data))
-        trainedModel <- glm(Label ~ . , data, family = binomial(logit))
+        trainedModel <- glm(Label ~ . , data, family = "binomial")
 }
 
 printPredictionResults <- function(prediction, actual)
 {
         print(summary(prediction))
         print(summary(actual))
-        #require(gmodels)
-        #table <- CrossTable(prediction, actual, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, 
-        #                    prop.t = TRUE, dnn=(c('actual result', 'predicted result')))
-        #precision <- (table$prop.tbl[1,1] + table$prop.tbl[2,2]) * 100
-        #print(paste0("Precision as percentage: ", round(precision, digits=3)))
-        
         
         # Logarithmic loss - kaggle-method for score calc
         epsilon <- .000000000000001
         yhat <- pmin(pmax(prediction, rep(epsilon)), 1-rep(epsilon))
         logloss <- -mean(actual*log(yhat) + (1-actual)*log(1 - yhat))
         print(paste0("Logarithmic loss: ", logloss))
+        print(paste0("First 10 predicions: ", prediction[1:10]))
 }
